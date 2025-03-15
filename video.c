@@ -1013,8 +1013,8 @@ void VideoGetVideoSize(VideoHwDecoder *i, int *width, int *height, int *aspect_n
 		*aspect_den = 9;
 	}
 	else {
-		*aspect_num = 4;
-		*aspect_den = 3;
+		*aspect_num = 16;
+		*aspect_den = 9;
 	}
 };
 
@@ -2093,7 +2093,7 @@ void InternalOpen(VideoHwDecoder *hwdecoder, int format, double frameRate)
 				PIP_allowed = true;
 				hwdecoder->handle = open("/dev/amstream_vframe", flags);
 			} else {
-				hwdecoder->handle = open("/dev/amstream_vframe", flags);
+				hwdecoder->handle = open("/dev/amstream_vbuf", flags);
 				if (use_pip && !pip && isPIP) {
 					DelPip();
 				}
@@ -2174,8 +2174,7 @@ void InternalOpen(VideoHwDecoder *hwdecoder, int format, double frameRate)
 				amlSetString("/sys/class/vfm/map","rm vdec-map-0");
 				amlSetString("/sys/class/vfm/map","add pip0 vdec.h264.00  ppmgr deinterlace amvideo");
 			}
-			else if (format == Mpeg2) {
-				amlSetString("/sys/class/vfm/map","rm vdec-map-0");
+			else if (use_pip_mpeg2 && (format == Mpeg2)) {
 				amlSetString("/sys/class/vfm/map","add pip0 vdec.mpeg12.00 ppmgr deinterlace  amvideo");
 			}
 		}
@@ -3179,7 +3178,7 @@ void SetScreenMode(int aspect, int pip)
 	if (aspect == 3) {
 		screenMode = (uint32_t)VIDEO_WIDEOPTION_16_9;
 	} else {
-		screenMode = (uint32_t)VIDEO_WIDEOPTION_4_3;
+		screenMode = (uint32_t)VIDEO_WIDEOPTION_16_9;
 	}
 
 	if (pip) {

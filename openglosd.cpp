@@ -93,8 +93,8 @@ void ConvertColor(const GLint & colARGB, glm::vec4 & col)
 ****************************************************************************************/
 
 
-const char *glversion = "#version 300 es   ";
-//const char *glversion = "#version 300 es ";
+const char *glversion = "#version 100   ";
+//const char *glversion = "#version 100 ";
 
 const char *rectVertexShader = "%s\n \
 \
@@ -838,9 +838,7 @@ bool cOglVb::Init(void)
         drawMode = GL_TRIANGLES;
         shader = stImage;
     }
-    glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
-    glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * (sizeVertex1 + sizeVertex2) * numVertices, NULL, GL_DYNAMIC_DRAW);
@@ -855,19 +853,16 @@ bool cOglVb::Init(void)
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 
     return true;
 }
 
 void cOglVb::Bind(void)
 {
-    glBindVertexArray(vao);
 }
 
 void cOglVb::Unbind(void)
 {
-    glBindVertexArray(0);
 }
 
 void cOglVb::ActivateShader(void)
@@ -1096,7 +1091,8 @@ bool cOglCmdCopyBufferToOutputFb::Execute(void)
         oFb->Unbind();
         fb->BindRead();
         if (myKernel == 5) {
-	        amlSetInt("/sys/class/graphics/fb0/blank",0 );
+	        char path[] = "/sys/class/graphics/fb0/blank";  // mutable char array to pass to amlSetInt
+amlSetInt(path, 0);
         }
         return true;
     }
@@ -1106,7 +1102,7 @@ bool cOglCmdCopyBufferToOutputFb::Execute(void)
     fb->BindRead();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    if (posd)
+    if (posd[0])
         glReadPixels(0, 0, fb->Width(), fb->Height(), GL_RGBA, GL_UNSIGNED_BYTE, posd);
     glFlush();
 
@@ -1974,7 +1970,7 @@ int cOglThread::StoreImage(const cImage & image)
     tColor *argb = MALLOC(tColor, imgSize);
 
     if (!argb) {
-        esyslog("[softhddev]memory allocation of %ld kb for OSD image failed", (imgSize * sizeof(tColor)) / 1024);
+        esyslog("[softhddev]memory allocation of %u kb for OSD image failed", (imgSize * sizeof(tColor)) / 1024);
         ClearSlot(slot);
         slot = 0;
         return 0;
@@ -2600,7 +2596,7 @@ cOglOsd::cOglOsd(int Left, int Top, uint Level, std::shared_ptr < cOglThread > o
     dsyslog("[softhddev]cOglOsd osdLeft %d osdTop %d screenWidth %d screenHeight %d", Left, Top, MyOsdWidth, MyOsdHeight);
 
 #if 0
-    if (posd)
+    if (posd[0])
         free(posd);
     posd = (unsigned char *)calloc(osdWidth * osdHeight * 4, 1);
 #endif
